@@ -402,6 +402,43 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIds:
         - !Ref VPCEndpointSecurityGroup
+
+  CodeDeployer:
+    Properties:
+      Description: Provides CodeDeploy service access to expand tags and interact with Auto Scaling on your behalf.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: codedeploy.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      Path: /
+    Type: AWS::IAM::Role
+
+  CodeDeployApplication:
+    Properties:
+      ApplicationName: !Ref ProjectName
+    Type: AWS::CodeDeploy::Application
+
+  CodeDeployDeploymentGroup:
+    Properties:
+      ApplicationName: !Ref ProjectName
+      ServiceRoleArn: !GetAtt CodeDeployer.Arn
+      DeploymentConfigName: CodeDeployDefault.HalfAtATime
+      DeploymentGroupName: !Ref ProjectName
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL # unless LoadBalancerInfo is ignored
+        DeploymentType: IN_PLACE
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+          - Name: !GetAtt 'ALBTargetGroup.TargetGroupName'
+      AutoScalingGroups:
+        - !Ref 'AutoScalingGroup'
+    Type: AWS::CodeDeploy::DeploymentGroup
+
 Outputs:
   LoadBalancerName:
     Value: !GetAtt 'ApplicationLoadBalancer.LoadBalancerName'
