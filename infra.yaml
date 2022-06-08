@@ -403,6 +403,10 @@ Resources:
       SecurityGroupIds:
         - !Ref VPCEndpointSecurityGroup
 
+  ###############
+  # CodeDeploy
+  ###############
+
   CodeDeployer:
     Properties:
       Description: Provides CodeDeploy service access to expand tags and interact with Auto Scaling on your behalf.
